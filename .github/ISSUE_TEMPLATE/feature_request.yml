@@ -1,0 +1,108 @@
+name: Feature Request
+description: Suggest a new feature for the toolchain
+title: "[Feature] "
+labels: ["enhancement", "feature-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature! This helps us understand what functionality would be most valuable for the neuromorphic computing community.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the toolchain would this feature affect?
+      options:
+        - Frontend (PyNN/Brian2 parsers)
+        - Compiler (optimization passes)
+        - Backend (HDL generation)
+        - Runtime (host-FPGA communication)
+        - CLI (command-line interface)
+        - Documentation
+        - Build system
+        - Testing framework
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: Describe the use case or research scenario that would benefit from this feature
+      placeholder: |
+        - What type of spiking neural network are you trying to implement?
+        - What FPGA platform are you targeting?
+        - What research question are you trying to answer?
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Feature Description
+      description: Describe the feature you'd like to see implemented
+      placeholder: |
+        - What functionality would this feature provide?
+        - How would users interact with it?
+        - What would the API look like?
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_workaround
+    attributes:
+      label: Current Workaround
+      description: How are you currently solving this problem, if at all?
+      placeholder: |
+        - Manual HDL coding
+        - External tools
+        - Custom scripts
+        - Not currently possible
+
+  - type: textarea
+    id: technical_requirements
+    attributes:
+      label: Technical Requirements
+      description: What are the technical requirements or constraints?
+      placeholder: |
+        - Performance requirements
+        - Hardware resource constraints
+        - Compatibility needs
+        - Integration requirements
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature for your work?
+      options:
+        - Critical (blocking my research)
+        - High (would significantly improve my workflow)
+        - Medium (nice to have improvement)
+        - Low (minor convenience)
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation_ideas
+    attributes:
+      label: Implementation Ideas
+      description: Do you have ideas about how this could be implemented?
+      placeholder: |
+        - Suggested approach or algorithm
+        - Similar implementations in other tools
+        - Potential challenges or considerations
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to contribute to this feature?
+      options:
+        - label: I would like to implement this feature myself
+        - label: I can help with testing and validation
+        - label: I can provide domain expertise and requirements
+        - label: I can help with documentation
+        - label: I would prefer someone else implements this

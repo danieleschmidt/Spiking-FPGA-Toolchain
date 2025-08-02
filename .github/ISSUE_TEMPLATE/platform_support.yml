@@ -1,0 +1,130 @@
+name: Platform Support Request
+description: Request support for a new FPGA platform or development board
+title: "[Platform] "
+labels: ["platform-support", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for requesting support for a new FPGA platform! This helps us understand which hardware the community wants to use.
+
+  - type: input
+    id: platform_name
+    attributes:
+      label: Platform Name
+      description: What is the name of the FPGA or development board?
+      placeholder: "e.g., Xilinx Zynq-7020, Intel Arria 10, Lattice ECP5"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: vendor
+    attributes:
+      label: FPGA Vendor
+      description: Which vendor makes this FPGA?
+      options:
+        - Xilinx (AMD)
+        - Intel (Altera)
+        - Lattice
+        - Microsemi (Microchip)
+        - Gowin
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: platform_specs
+    attributes:
+      label: Platform Specifications
+      description: Provide detailed specifications for the FPGA platform
+      placeholder: |
+        - Logic elements/cells: 
+        - Block RAM: 
+        - DSP blocks: 
+        - Package: 
+        - Speed grade: 
+        - On-chip memory: 
+        - I/O pins: 
+    validations:
+      required: true
+
+  - type: input
+    id: development_board
+    attributes:
+      label: Development Board
+      description: Which development board do you use with this FPGA?
+      placeholder: "e.g., Arty Z7-20, DE10-Nano, Colorlight 5A-75B"
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: What type of spiking neural networks do you want to run on this platform?
+      placeholder: |
+        - Network size (number of neurons)
+        - Application domain (robotics, vision, etc.)
+        - Performance requirements
+        - Power constraints
+    validations:
+      required: true
+
+  - type: dropdown
+    id: toolchain
+    attributes:
+      label: Synthesis Toolchain
+      description: Which synthesis tool would be used for this platform?
+      options:
+        - Xilinx Vivado
+        - Intel Quartus Prime
+        - Lattice Diamond
+        - Lattice Radiant
+        - Open-source (Yosys/nextpnr)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: community_interest
+    attributes:
+      label: Community Interest
+      description: Do you know of others who would use this platform?
+      placeholder: |
+        - Research groups using this platform
+        - Popular applications or projects
+        - Educational programs or courses
+        - Commercial interest
+
+  - type: textarea
+    id: technical_challenges
+    attributes:
+      label: Technical Challenges
+      description: Are there any known technical challenges for this platform?
+      placeholder: |
+        - Timing constraints
+        - Resource limitations
+        - Tool compatibility issues
+        - Special configuration requirements
+
+  - type: checkboxes
+    id: support_level
+    attributes:
+      label: Support Level Needed
+      description: What level of support are you looking for?
+      options:
+        - label: Basic synthesis and place & route
+        - label: Resource optimization for this platform
+        - label: Platform-specific HDL templates
+        - label: Development board integration
+        - label: Hardware-in-the-loop testing support
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: How can you help with this platform support?
+      options:
+        - label: I have hardware available for testing
+        - label: I have experience with this platform and toolchain
+        - label: I can help with implementation and testing
+        - label: I can provide funding or hardware donations
+        - label: I can contribute documentation and tutorials
