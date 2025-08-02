@@ -1,0 +1,92 @@
+name: Research Discussion
+description: Discuss research ideas, algorithms, or neuromorphic computing concepts
+title: "[Research] "
+labels: ["research", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for starting a research discussion! This template is for discussing research ideas, algorithms, optimization techniques, or neuromorphic computing concepts related to the project.
+
+  - type: dropdown
+    id: research_area
+    attributes:
+      label: Research Area
+      description: Which area does this discussion relate to?
+      options:
+        - Spiking Neural Network Algorithms
+        - FPGA Architecture & Optimization
+        - Hardware-Software Co-design
+        - Neuromorphic Computing Theory
+        - Compilation & Code Generation
+        - Performance Analysis & Benchmarking
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: Background & Motivation
+      description: Provide context and motivation for this research discussion
+      placeholder: |
+        - What problem are you trying to solve?
+        - Why is this important for the project?
+        - What prior work exists in this area?
+    validations:
+      required: true
+
+  - type: textarea
+    id: research_question
+    attributes:
+      label: Research Question/Idea
+      description: Clearly state your research question, idea, or hypothesis
+      placeholder: |
+        - What specific question are you exploring?
+        - What approach do you propose?
+        - What would success look like?
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical_details
+    attributes:
+      label: Technical Details
+      description: Provide technical details, equations, algorithms, or implementation notes
+      placeholder: |
+        - Mathematical formulation
+        - Algorithm pseudocode
+        - Hardware resource requirements
+        - Performance considerations
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: List relevant papers, articles, or other resources
+      placeholder: |
+        - [Author et al., "Title", Conference/Journal, Year]
+        - Links to relevant GitHub repositories
+        - Technical specifications or standards
+
+  - type: textarea
+    id: collaboration
+    attributes:
+      label: Collaboration Opportunities
+      description: How can others contribute to this research?
+      placeholder: |
+        - Are you looking for collaborators?
+        - What expertise would be helpful?
+        - How can the community help advance this work?
+
+  - type: checkboxes
+    id: implementation_ready
+    attributes:
+      label: Implementation Status
+      description: What's the current status of this research?
+      options:
+        - label: This is a conceptual idea needing discussion
+        - label: I have preliminary results or prototypes
+        - label: This is ready for implementation in the project
+        - label: I need help with mathematical/theoretical aspects
+        - label: I need help with implementation details

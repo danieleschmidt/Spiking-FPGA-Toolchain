@@ -1,0 +1,1 @@
+"""HDL templates and modules for FPGA implementation."""
