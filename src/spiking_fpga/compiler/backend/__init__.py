@@ -1,1 +1,0 @@
-"""HDL generation and synthesis integration."""

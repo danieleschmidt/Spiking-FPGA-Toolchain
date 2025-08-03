@@ -1,73 +1,53 @@
-# Simple MNIST classification network example
-# This is a placeholder configuration for the future implementation
+name: "MNIST_Classifier"
+description: "Simple spiking neural network for MNIST digit classification"
+timestep: 1.0  # 1ms timestep
 
-network:
-  name: "simple_mnist_classifier"
-  description: "Basic spiking neural network for MNIST digit classification"
-  
-neurons:
-  total: 1094  # 784 input + 300 hidden + 10 output
-  
 layers:
-  - name: "input_layer"
+  - name: "input"
     type: "input"
-    size: 784  # 28x28 pixels
-    encoding: "poisson"
-    rate_coding: true
-    
-  - name: "hidden_layer"
-    type: "hidden"
-    size: 300
-    neuron_model: "LIF"
+    size: 784
+    neuron_type: "LIF"
     parameters:
-      tau_m: 20.0      # membrane time constant (ms)
-      v_thresh: -50.0  # threshold voltage (mV)
-      v_rest: -65.0    # resting potential (mV)
-      v_reset: -70.0   # reset voltage (mV)
-      tau_refrac: 2.0  # refractory period (ms)
-    
-  - name: "output_layer"
-    type: "output"
-    size: 10  # digits 0-9
-    neuron_model: "LIF"
-    parameters:
+      v_thresh: 1.0
+      v_reset: 0.0
       tau_m: 20.0
-      v_thresh: -50.0
-      v_rest: -65.0
-      v_reset: -70.0
-      tau_refrac: 2.0
+      v_rest: 0.0
 
-connectivity:
-  - source: "input_layer"
-    target: "hidden_layer"
-    type: "sparse_random"
-    sparsity: 0.1
-    weights:
-      distribution: "normal"
+  - name: "hidden"
+    type: "hidden" 
+    size: 300
+    neuron_type: "LIF"
+    parameters:
+      v_thresh: 1.0
+      v_reset: 0.0
+      tau_m: 20.0
+      v_rest: 0.0
+
+  - name: "output"
+    type: "output"
+    size: 10
+    neuron_type: "LIF"
+    parameters:
+      v_thresh: 1.0
+      v_reset: 0.0
+      tau_m: 20.0
+      v_rest: 0.0
+
+connections:
+  - from: "input"
+    to: "hidden"
+    pattern: "all_to_all"
+    weight_distribution: "uniform"
+    weight_params:
+      min: 0.1
+      max: 1.0
+    sparsity: 0.3  # 30% connectivity
+
+  - from: "hidden"
+    to: "output"
+    pattern: "all_to_all"
+    weight_distribution: "normal"
+    weight_params:
       mean: 0.5
-      std: 0.1
-      
-  - source: "hidden_layer"
-    target: "output_layer"
-    type: "sparse_random"
-    sparsity: 0.2
-    weights:
-      distribution: "normal"
-      mean: 0.8
-      std: 0.15
-
-simulation:
-  duration: 100.0  # ms
-  dt: 0.1         # ms
-  
-compilation:
-  target_fpga: "artix7_35t"
-  optimization_level: 2
-  power_budget_mw: 500
-  timing_constraints:
-    clock_frequency: 100  # MHz
-    
-output:
-  hdl_format: "verilog"
-  generate_testbench: true
-  synthesis_reports: true
+      std: 0.2
+    sparsity: 0.8  # 80% connectivity
