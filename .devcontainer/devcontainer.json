@@ -1,0 +1,47 @@
+{
+  "name": "Spiking-FPGA-Toolchain Development",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.flake8",
+        "ms-python.black-formatter",
+        "ms-python.pylint",
+        "redhat.vscode-yaml",
+        "ms-vscode.vscode-json",
+        "msrvida.vscode-sanddance",
+        "ms-toolsai.jupyter",
+        "donjayamanne.githistory"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black",
+        "python.formatting.blackArgs": ["--line-length=88"],
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestArgs": ["tests/"],
+        "files.autoSave": "onFocusChange",
+        "terminal.integrated.shell.linux": "/bin/bash"
+      }
+    }
+  },
+  "forwardPorts": [8000, 8080, 3000],
+  "postCreateCommand": "pip install -e .[dev] && pre-commit install",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "containerEnv": {
+    "PYTHONPATH": "/workspaces/Spiking-FPGA-Toolchain/src",
+    "FPGA_TOOLCHAIN_HOME": "/workspaces/Spiking-FPGA-Toolchain"
+  }
+}

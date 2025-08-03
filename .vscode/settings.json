@@ -1,0 +1,65 @@
+{
+  "python.defaultInterpreterPath": "./venv/bin/python",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": ["--line-length=88"],
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": ["tests/"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.autoTestDiscoverOnSaveEnabled": true,
+  
+  "files.autoSave": "onFocusChange",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "editor.rulers": [88],
+  
+  "[python]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+  },
+  
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  
+  "[verilog]": {
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "${workspaceFolder}/src"
+  },
+  
+  "files.associations": {
+    "*.v": "verilog",
+    "*.vh": "verilog", 
+    "*.sv": "systemverilog",
+    "*.svh": "systemverilog",
+    "*.xdc": "tcl",
+    "*.sdc": "tcl"
+  },
+  
+  "search.exclude": {
+    "**/venv/**": true,
+    "**/.venv/**": true,
+    "**/output/**": true,
+    "**/cache/**": true,
+    "**/tmp/**": true,
+    "**/__pycache__/**": true,
+    "**/*.pyc": true
+  }
+}
