@@ -1,0 +1,78 @@
+{
+    "python.pythonPath": "./venv/bin/python",
+    "python.defaultInterpreterPath": "./venv/bin/python",
+    
+    // Linting and formatting
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": false,
+    "python.linting.mypyEnabled": true,
+    "python.formatting.provider": "black",
+    "python.sortImports.args": ["--profile", "black"],
+    
+    // Editor settings
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    },
+    "editor.rulers": [88],
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    
+    // Python-specific settings
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestArgs": [
+        "tests/"
+    ],
+    
+    // File associations
+    "files.associations": {
+        "*.v": "verilog",
+        "*.vh": "verilog", 
+        "*.sv": "systemverilog",
+        "*.vhd": "vhdl",
+        "*.vhdl": "vhdl",
+        "*.tcl": "tcl",
+        "*.xdc": "tcl",
+        "*.sdc": "tcl"
+    },
+    
+    // Terminal settings
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+    },
+    
+    // Git settings
+    "git.ignoreLimitWarning": true,
+    
+    // Search settings
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/tmp": true,
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.mypy_cache": true,
+        "**/build": true,
+        "**/dist": true,
+        "**/*.egg-info": true,
+        "**/output": true,
+        "**/.cache": true
+    },
+    
+    // Workspace recommendations
+    "extensions.recommendations": [
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "mshr-h.veriloghdl",
+        "leafvmaple.verilog",
+        "github.copilot"
+    ]
+}

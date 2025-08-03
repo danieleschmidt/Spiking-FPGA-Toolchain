@@ -11,21 +11,16 @@ __author__ = "Spiking-FPGA-Toolchain Contributors"
 __license__ = "Apache-2.0"
 
 from spiking_fpga.core import FPGATarget
+from spiking_fpga.compiler import HDLGenerator, VivadoBackend, QuartusBackend
+from spiking_fpga.models import Network
+from spiking_fpga.network_compiler import NetworkCompiler, compile_network
 
 __all__ = [
     "FPGATarget",
-    "compile_network",
+    "compile_network", 
     "NetworkCompiler",
+    "Network",
+    "HDLGenerator",
+    "VivadoBackend",
+    "QuartusBackend",
 ]
-
-
-def compile_network():
-    """Placeholder for network compilation function."""
-    raise NotImplementedError("Implementation coming in Phase 1")
-
-
-class NetworkCompiler:
-    """Placeholder for NetworkCompiler class."""
-    
-    def __init__(self):
-        raise NotImplementedError("Implementation coming in Phase 1")
