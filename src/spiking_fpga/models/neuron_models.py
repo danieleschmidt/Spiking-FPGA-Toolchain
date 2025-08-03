@@ -69,7 +69,7 @@ class LIFNeuron(NeuronModel):
         decay_fp = int((1.0 - 1.0/self.tau_m) * 256)
         refrac_cycles = int(self.refractory_period)
         
-        hdl_code = f\"\"\"
+        hdl_code = f'''
 // LIF Neuron #{neuron_id}
 module lif_neuron_{neuron_id} #(
     parameter V_THRESH = {thresh_fp},
@@ -132,7 +132,7 @@ module lif_neuron_{neuron_id} #(
     assign voltage_out = membrane_voltage[23:8];
 
 endmodule
-\"\"\"
+'''
         return hdl_code.strip()
     
     def get_resource_estimate(self) -> Dict[str, int]:
@@ -172,7 +172,7 @@ class IzhikevichNeuron(NeuronModel):
         c_fp = int(self.c * 256)
         d_fp = int(self.d * 256)
         
-        hdl_code = f\"\"\"
+        hdl_code = f'''
 // Izhikevich Neuron #{neuron_id}
 module izhikevich_neuron_{neuron_id} #(
     parameter A = {a_fp},
@@ -226,7 +226,7 @@ module izhikevich_neuron_{neuron_id} #(
     assign voltage_out = v[23:8];
 
 endmodule
-\"\"\"
+'''
         return hdl_code.strip()
     
     def get_resource_estimate(self) -> Dict[str, int]:
@@ -275,7 +275,7 @@ class AdaptiveLIFNeuron(NeuronModel):
         adapt_decay_fp = int((1.0 - 1.0/self.tau_adapt) * 256)
         delta_thresh_fp = int(self.delta_thresh * 256)
         
-        hdl_code = f\"\"\"
+        hdl_code = f'''
 // Adaptive LIF Neuron #{neuron_id}
 module adaptive_lif_neuron_{neuron_id} #(
     parameter V_THRESH_BASE = {thresh_fp},
@@ -335,7 +335,7 @@ module adaptive_lif_neuron_{neuron_id} #(
     assign threshold_out = current_threshold[23:8];
 
 endmodule
-\"\"\"
+'''
         return hdl_code.strip()
     
     def get_resource_estimate(self) -> Dict[str, int]:

@@ -191,7 +191,7 @@ def validate():
     
     # Check Python environment
     try:
-        import numpy, yaml, click, pydantic, networkx
+        import numpy, yaml, pydantic, networkx
         click.echo("✅ Python dependencies OK")
     except ImportError as e:
         click.echo(f"❌ Missing Python dependency: {e}")
