@@ -1,0 +1,215 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spiking-fpga-toolchain
+  namespace: terragon-labs
+  labels:
+    app: spiking-fpga-toolchain
+    version: v0.1.0-dev
+    component: compiler
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: spiking-fpga-toolchain
+  template:
+    metadata:
+      labels:
+        app: spiking-fpga-toolchain
+        version: v0.1.0-dev
+        component: compiler
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: spiking-fpga-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      
+      containers:
+      - name: spiking-fpga-compiler
+        image: terragon/spiking-fpga-toolchain:v0.1.0-dev
+        imagePullPolicy: IfNotPresent
+        
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        
+        env:
+        - name: SPIKING_FPGA_CACHE_DIR
+          value: "/app/cache"
+        - name: SPIKING_FPGA_LOG_DIR
+          value: "/app/logs"
+        - name: SPIKING_FPGA_LOG_LEVEL
+          value: "INFO"
+        - name: SPIKING_FPGA_MAX_WORKERS
+          valueFrom:
+            configMapKeyRef:
+              name: spiking-fpga-config
+              key: max_workers
+        - name: SPIKING_FPGA_ENABLE_MONITORING
+          value: "true"
+        - name: PYTHONPATH
+          value: "/app/src"
+        
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "4000m"
+            memory: "8Gi"
+        
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "from spiking_fpga import FPGATarget; print('OK')"
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        
+        readinessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "from spiking_fpga import FPGATarget; print('OK')"
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        volumeMounts:
+        - name: cache-volume
+          mountPath: /app/cache
+        - name: logs-volume
+          mountPath: /app/logs
+        - name: input-volume
+          mountPath: /app/input
+          readOnly: true
+        - name: output-volume
+          mountPath: /app/output
+        
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      
+      volumes:
+      - name: cache-volume
+        persistentVolumeClaim:
+          claimName: spiking-fpga-cache-pvc
+      - name: logs-volume
+        persistentVolumeClaim:
+          claimName: spiking-fpga-logs-pvc
+      - name: input-volume
+        persistentVolumeClaim:
+          claimName: spiking-fpga-input-pvc
+      - name: output-volume
+        persistentVolumeClaim:
+          claimName: spiking-fpga-output-pvc
+      
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        node-type: compute-optimized
+      
+      tolerations:
+      - key: "compute-optimized"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - spiking-fpga-toolchain
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spiking-fpga-service
+  namespace: terragon-labs
+  labels:
+    app: spiking-fpga-toolchain
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: spiking-fpga-toolchain
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spiking-fpga-config
+  namespace: terragon-labs
+data:
+  max_workers: "4"
+  cache_ttl_hours: "24"
+  optimization_level: "2"
+  enable_synthesis: "false"
+  log_level: "INFO"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spiking-fpga-sa
+  namespace: terragon-labs
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: terragon-labs
+  name: spiking-fpga-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: spiking-fpga-rolebinding
+  namespace: terragon-labs
+subjects:
+- kind: ServiceAccount
+  name: spiking-fpga-sa
+  namespace: terragon-labs
+roleRef:
+  kind: Role
+  name: spiking-fpga-role
+  apiGroup: rbac.authorization.k8s.io

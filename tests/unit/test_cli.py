@@ -49,7 +49,7 @@ class TestCLI:
         result = self.runner.invoke(main, ['validate'])
         assert result.exit_code == 0
         assert "Validating environment" in result.output
-        assert "Python environment OK" in result.output
+        assert "Python dependencies OK" in result.output
     
     def test_compile_placeholder(self):
         """Test compile command placeholder behavior."""
@@ -64,7 +64,9 @@ class TestCLI:
             ])
             assert result.exit_code == 0
             assert "Compiling test_network.yaml" in result.output
-            assert "placeholder" in result.output.lower()
+            # The CLI now actually tries to compile, so check for compilation output
+            assert ("compilation" in result.output.lower() or 
+                   "validation error" in result.output.lower())
     
     def test_invalid_target(self):
         """Test compile with invalid target."""

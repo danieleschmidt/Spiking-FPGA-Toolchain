@@ -1,0 +1,1 @@
+=== Network Analysis Report ===\n\nNetwork Name: MNIST_Classifier\nDescription: Simple spiking neural network for MNIST digit classification\nTotal Layers: 3\nTimestep: 1.0 ms\n\nLayer Details:\n  Layer 0: input, Size: 784, Type: LIF\n  Layer 1: hidden, Size: 300, Type: LIF\n  Layer 2: output, Size: 10, Type: LIF\n
