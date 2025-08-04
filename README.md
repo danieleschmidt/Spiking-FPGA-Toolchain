@@ -206,7 +206,7 @@ If you use this toolchain in your research, please cite:
 ```bibtex
 @inproceedings{neuromorphic-fpga-2025,
   title={Efficient Mapping of Spiking Neural Networks to Commodity FPGAs},
-  author={Your Name},
+  author={Daniel Schmidt},
   booktitle={ICML Workshop on Neuromorphic Engineering},
   year={2025}
 }
