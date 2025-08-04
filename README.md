@@ -42,7 +42,7 @@ This project provides an end-to-end pipeline for deploying neuromorphic computin
 ### Quick Start
 
 ```bash
-git clone https://github.com/yourusername/Spiking-FPGA-Toolchain
+git clone https://github.com/danieleschmidt/Spiking-FPGA-Toolchain
 cd Spiking-FPGA-Toolchain
 pip install -e .
 ```
