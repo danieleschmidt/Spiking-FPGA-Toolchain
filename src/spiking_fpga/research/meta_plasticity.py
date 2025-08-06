@@ -82,12 +82,12 @@ class BitstiftSTDP:
             if dt_spike > 0 and dt_spike < 50:  # Post after pre -> LTP
                 dt_int = min(int(dt_spike), 49)
                 shift = self.ltp_shifts.get(dt_int, 7)
-                delta_weight = (self.params.a_ltp * (self.max_weight - connection.weight)) >> shift
+                delta_weight = int(self.params.a_ltp * (self.max_weight - connection.weight)) >> shift
                 
             elif dt_spike < 0 and dt_spike > -50:  # Pre after post -> LTD
                 dt_int = min(int(abs(dt_spike)), 49)
                 shift = self.ltd_shifts.get(dt_int, 7)
-                delta_weight = -(self.params.a_ltd * connection.weight) >> shift
+                delta_weight = -(int(self.params.a_ltd * connection.weight) >> shift)
             
             # Apply modulations
             delta_weight *= connection.meta_plasticity_factor * connection.homeostatic_scaling
