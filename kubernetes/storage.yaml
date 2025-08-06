@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spiking-fpga-cache-pvc
+  namespace: terragon-labs
+  labels:
+    app: spiking-fpga-toolchain
+    component: cache
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spiking-fpga-logs-pvc
+  namespace: terragon-labs
+  labels:
+    app: spiking-fpga-toolchain
+    component: logs
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spiking-fpga-input-pvc
+  namespace: terragon-labs
+  labels:
+    app: spiking-fpga-toolchain
+    component: input
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spiking-fpga-output-pvc
+  namespace: terragon-labs
+  labels:
+    app: spiking-fpga-toolchain
+    component: output
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: fast-ssd

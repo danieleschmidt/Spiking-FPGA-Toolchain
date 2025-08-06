@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Union, List
 import logging
 from dataclasses import dataclass
+from datetime import datetime
 
 from .core import FPGATarget
 from .models.network import Network
@@ -11,6 +12,11 @@ from .models.optimization import OptimizationLevel, ResourceEstimate
 from .compiler.frontend import parse_network_file, get_parser
 from .compiler.optimizer import OptimizationPipeline
 from .compiler.backend import HDLGenerator, HDLGenerationConfig, VivadoBackend, QuartusBackend, SynthesisResult
+from .utils import (
+    StructuredLogger, configure_logging, CompilationTracker,
+    NetworkValidator, ConfigurationValidator, FileValidator, ValidationResult,
+    HealthMonitor, PerformanceTimer, CircuitBreaker, CompilationMetrics
+)
 
 
 @dataclass
@@ -125,19 +131,41 @@ class CompilationResult:
 class NetworkCompiler:
     """Main compiler for spiking neural networks to FPGA hardware."""
     
-    def __init__(self, target: FPGATarget):
+    def __init__(self, target: FPGATarget, enable_monitoring: bool = True, 
+                 log_level: str = "INFO", log_file: Optional[Path] = None):
         self.target = target
         self.optimization_pipeline = OptimizationPipeline()
         self.hdl_generator = HDLGenerator()
-        self.logger = logging.getLogger(__name__)
         
-        # Initialize backend based on target
+        # Initialize robust logging and monitoring
+        self.logger = configure_logging(log_level, log_file)
+        self.compilation_tracker = CompilationTracker(self.logger)
+        
+        # Initialize validators
+        self.network_validator = NetworkValidator()
+        self.config_validator = ConfigurationValidator()
+        self.file_validator = FileValidator()
+        
+        # Initialize monitoring
+        self.health_monitor = None
+        if enable_monitoring:
+            metrics_file = log_file.parent / "metrics.jsonl" if log_file else None
+            self.health_monitor = HealthMonitor(self.logger, metrics_file)
+            self.health_monitor.start_monitoring()
+        
+        # Initialize backend with circuit breaker protection
+        self.circuit_breaker = CircuitBreaker(logger=self.logger)
         if target.vendor == "xilinx":
             self.backend = VivadoBackend()
         elif target.vendor == "intel":
             self.backend = QuartusBackend()
         else:
             raise ValueError(f"Unsupported vendor: {target.vendor}")
+        
+        self.logger.info("NetworkCompiler initialized", 
+                        target=target.value, 
+                        vendor=target.vendor,
+                        monitoring_enabled=enable_monitoring)
     
     def compile(self, network: Union[Network, str, Path], 
                output_dir: Union[str, Path],
@@ -149,28 +177,110 @@ class NetworkCompiler:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        self.logger.info(f"Starting compilation for target: {self.target.value}")
+        # Initialize compilation metrics
+        compilation_metrics = CompilationMetrics(
+            network_name="unknown",
+            target=self.target.value,
+            start_time=datetime.utcnow(),
+            optimization_level=config.optimization_level.name
+        )
         
         try:
-            # Parse network if needed
-            if isinstance(network, (str, Path)):
-                self.logger.info(f"Parsing network from file: {network}")
-                parsed_network = parse_network_file(Path(network))
-            else:
-                parsed_network = network
+            # Start compilation tracking
+            self.compilation_tracker.start_compilation("network", self.target.value)
             
-            # Validate network
-            issues = parsed_network.validate_network()
-            if issues:
-                self.logger.warning(f"Network validation issues: {issues}")
+            # Parse and validate network file if needed
+            with PerformanceTimer("network_parsing", self.logger) as parsing_timer:
+                if isinstance(network, (str, Path)):
+                    network_path = Path(network)
+                    
+                    # Validate file first
+                    file_validation = self.file_validator.validate_network_file(network_path)
+                    if not file_validation.valid:
+                        compilation_metrics.success = False
+                        compilation_metrics.error_message = "; ".join(file_validation.issues)
+                        return self._create_error_result(network, file_validation.issues)
+                    
+                    self.logger.info("Parsing network from file", file_path=str(network_path))
+                    parsed_network = parse_network_file(network_path)
+                    compilation_metrics.network_name = parsed_network.name
+                else:
+                    parsed_network = network
+                    compilation_metrics.network_name = parsed_network.name
             
-            # Optimize network
-            self.logger.info("Running optimization pipeline")
-            optimized_network, optimization_stats = self.optimization_pipeline.optimize(
-                network=parsed_network,
-                target_platform=self.target.resources,
-                optimization_level=config.optimization_level
+            compilation_metrics.parsing_time_seconds = parsing_timer.elapsed_seconds()
+            
+            # Comprehensive network validation
+            with PerformanceTimer("network_validation", self.logger) as validation_timer:
+                network_validation = self.network_validator.validate_network(parsed_network)
+                
+                # Log validation results
+                if network_validation.warnings:
+                    self.logger.warning("Network validation warnings", 
+                                      warnings=network_validation.warnings)
+                
+                if network_validation.recommendations:
+                    self.logger.info("Network optimization recommendations", 
+                                   recommendations=network_validation.recommendations)
+                
+                if not network_validation.valid:
+                    compilation_metrics.success = False  
+                    compilation_metrics.error_message = "; ".join(network_validation.issues)
+                    return self._create_error_result(parsed_network, network_validation.issues)
+            
+            # Update compilation metrics
+            compilation_metrics.neuron_count = len(parsed_network.neurons)
+            compilation_metrics.synapse_count = len(parsed_network.synapses)
+            compilation_metrics.layer_count = len(parsed_network.layers)
+            
+            # Validate configuration
+            config_validation = self.config_validator.validate_optimization_config(
+                config.optimization_level
             )
+            if not config_validation.valid:
+                return self._create_error_result(parsed_network, config_validation.issues)
+            
+            # Run optimization pipeline
+            with PerformanceTimer("network_optimization", self.logger) as optimization_timer:
+                self.logger.info("Running optimization pipeline")
+                optimized_network, optimization_stats = self.optimization_pipeline.optimize(
+                    network=parsed_network,
+                    target_platform=self.target.resources,
+                    optimization_level=config.optimization_level
+                )
+            
+            compilation_metrics.optimization_time_seconds = optimization_timer.elapsed_seconds()
+            
+            # Update optimization metrics  
+            if "optimization_metrics" in optimization_stats:
+                metrics = optimization_stats["optimization_metrics"]
+                compilation_metrics.synapses_pruned = metrics.get("synapse_reduction", 0)
+                compilation_metrics.neurons_clustered = metrics.get("neuron_reduction", 0)
+            
+            # Validate resource constraints
+            with PerformanceTimer("resource_estimation", self.logger) as estimation_timer:
+                resource_estimate = self.optimization_pipeline.resource_optimizer.estimate_resources(
+                    optimized_network, self.optimization_pipeline.neuron_models
+                )
+                
+                # Update compilation metrics
+                compilation_metrics.estimated_luts = resource_estimate.luts
+                compilation_metrics.estimated_memory_kb = resource_estimate.bram_kb
+                compilation_metrics.estimated_dsp_slices = resource_estimate.dsp_slices
+                
+                # Validate target compatibility
+                target_validation = self.config_validator.validate_fpga_target(
+                    self.target, resource_estimate
+                )
+                
+                if target_validation.warnings:
+                    self.logger.warning("Target resource warnings", 
+                                      warnings=target_validation.warnings)
+                
+                if not target_validation.valid:
+                    self.logger.error("Network exceeds target FPGA resources", 
+                                    issues=target_validation.issues)
+                    # Continue anyway but log the issues
             
             # Generate HDL
             self.logger.info("Generating HDL code")
@@ -179,25 +289,32 @@ class NetworkCompiler:
                 debug_enabled=config.debug_enabled
             )
             self.hdl_generator.config = hdl_config
-            hdl_files = self.hdl_generator.generate(optimized_network, output_dir / "hdl")
             
-            # Estimate final resources
-            resource_estimate = self.optimization_pipeline.resource_optimizer.estimate_resources(
-                optimized_network, self.optimization_pipeline.neuron_models
-            )
+            with PerformanceTimer("hdl_generation", self.logger) as hdl_timer:
+                hdl_files = self.hdl_generator.generate(optimized_network, output_dir / "hdl")
+            
+            compilation_metrics.hdl_generation_time_seconds = hdl_timer.elapsed_seconds()
             
             # Run synthesis if requested
             synthesis_result = None
             if config.run_synthesis:
-                if self.backend.is_available():
-                    self.logger.info("Running FPGA synthesis")
-                    synthesis_result = self.backend.synthesize(
-                        hdl_files, self.target, output_dir / "build"
-                    )
-                else:
-                    self.logger.warning(f"Backend {self.target.toolchain} not available")
+                with PerformanceTimer("synthesis", self.logger) as synthesis_timer:
+                    if self.backend.is_available():
+                        self.logger.info("Running FPGA synthesis")
+                        try:
+                            synthesis_result = self.circuit_breaker.call(
+                                self.backend.synthesize, hdl_files, self.target, output_dir / "build"
+                            )
+                        except Exception as e:
+                            self.logger.error("Synthesis failed", error=str(e))
+                            synthesis_result = None
+                    else:
+                        self.logger.warning("Backend not available", 
+                                          toolchain=self.target.toolchain)
+                
+                compilation_metrics.synthesis_time_seconds = synthesis_timer.elapsed_seconds()
             
-            # Create result
+            # Create successful result
             result = CompilationResult(
                 success=True,
                 network=parsed_network,
@@ -213,20 +330,35 @@ class NetworkCompiler:
                 self.logger.info("Generating compilation reports")
                 result.generate_reports(output_dir / "reports")
             
-            self.logger.info("Compilation completed successfully")
+            # Mark compilation as successful
+            compilation_metrics.success = True
+            compilation_metrics.end_time = datetime.utcnow()
+            
+            # Track completion
+            if self.health_monitor:
+                self.health_monitor.add_compilation_metrics(compilation_metrics)
+            
+            self.compilation_tracker.finish_compilation(True)
+            self.logger.info("Compilation completed successfully", 
+                           duration_seconds=compilation_metrics.duration_seconds())
+            
             return result
             
         except Exception as e:
-            self.logger.error(f"Compilation failed: {str(e)}")
-            return CompilationResult(
-                success=False,
-                network=network if isinstance(network, Network) else Network(name="failed"),
-                optimized_network=Network(name="failed"),
-                hdl_files={},
-                resource_estimate=ResourceEstimate(),
-                optimization_stats={},
-                errors=[str(e)]
-            )
+            # Mark compilation as failed
+            compilation_metrics.success = False
+            compilation_metrics.error_message = str(e)
+            compilation_metrics.end_time = datetime.utcnow()
+            
+            if self.health_monitor:
+                self.health_monitor.add_compilation_metrics(compilation_metrics)
+            
+            self.compilation_tracker.finish_compilation(False, str(e))
+            self.logger.error("Compilation failed", 
+                            error=str(e),
+                            duration_seconds=compilation_metrics.duration_seconds())
+            
+            return self._create_error_result(network, [str(e)])
     
     def add_optimization_pass(self, pass_obj) -> None:
         """Add a custom optimization pass."""
@@ -248,6 +380,38 @@ class NetworkCompiler:
         return self.optimization_pipeline.suggest_optimizations(
             network, self.target.resources
         )
+    
+    def _create_error_result(self, network: Union[Network, str, Path], 
+                           errors: List[str]) -> CompilationResult:
+        """Create a CompilationResult for errors."""
+        if isinstance(network, Network):
+            network_obj = network
+        else:
+            network_obj = Network(name="failed_network")
+        
+        return CompilationResult(
+            success=False,
+            network=network_obj,
+            optimized_network=Network(name="failed"),
+            hdl_files={},
+            resource_estimate=ResourceEstimate(),
+            optimization_stats={},
+            errors=errors
+        )
+    
+    def get_health_status(self) -> Dict[str, Any]:
+        """Get current health and performance status."""
+        if self.health_monitor:
+            return {
+                "system_health": self.health_monitor.get_current_health(),
+                "compilation_stats": self.health_monitor.get_compilation_stats()
+            }
+        return {"monitoring_disabled": True}
+    
+    def __del__(self):
+        """Cleanup monitoring on destruction."""
+        if hasattr(self, 'health_monitor') and self.health_monitor:
+            self.health_monitor.stop_monitoring()
 
 
 def compile_network(network: Union[Network, str, Path],

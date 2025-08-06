@@ -15,6 +15,15 @@ from spiking_fpga.compiler import HDLGenerator, VivadoBackend, QuartusBackend
 from spiking_fpga.models import Network
 from spiking_fpga.network_compiler import NetworkCompiler, compile_network
 
+# Research modules for cutting-edge neuromorphic algorithms
+from spiking_fpga.research import (
+    AdaptiveSpikeCoder,
+    MultiModalEncoder,
+    MetaPlasticSTDP,
+    BitstiftSTDP,
+    HomeostasticRegulator,
+)
+
 __all__ = [
     "FPGATarget",
     "compile_network", 
@@ -23,4 +32,10 @@ __all__ = [
     "HDLGenerator",
     "VivadoBackend",
     "QuartusBackend",
+    # Research algorithms
+    "AdaptiveSpikeCoder",
+    "MultiModalEncoder", 
+    "MetaPlasticSTDP",
+    "BitstiftSTDP",
+    "HomeostasticRegulator",
 ]

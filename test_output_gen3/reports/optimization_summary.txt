@@ -1,0 +1,1 @@
+=== Optimization Summary Report ===\n\nOptimization Level: BASIC\n\nOptimization Passes Applied:\n  - Synapse Pruning\n\nOptimization Results:\n  Neurons Reduced: 0\n  Synapses Reduced: 3\n  LUTs Saved: 0\n
