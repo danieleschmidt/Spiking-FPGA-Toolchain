@@ -99,7 +99,7 @@ class ScalableNetworkCompiler:
         """Generate a hash for compilation configuration."""
         config_data = {
             "target": target.value,
-            "optimization_level": config.optimization_level.value,
+            "optimization_level": config.optimization_level if isinstance(config.optimization_level, int) else config.optimization_level.value,
             "clock_frequency": config.clock_frequency,
             "debug_enabled": config.debug_enabled,
             "run_synthesis": config.run_synthesis,

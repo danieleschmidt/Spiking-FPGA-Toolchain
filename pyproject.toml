@@ -122,6 +122,7 @@ markers = [
     "hardware: marks tests that require FPGA hardware",
     "vivado: marks tests requiring Xilinx Vivado",
     "quartus: marks tests requiring Intel Quartus",
+    "performance: marks performance tests requiring benchmarks",
 ]
 
 [tool.coverage.run]
