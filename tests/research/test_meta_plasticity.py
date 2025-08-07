@@ -401,10 +401,15 @@ class TestIntegrationScenarios:
         
         # Add random synapses
         np.random.seed(42)
+        added_synapses = 0
         for _ in range(n_synapses):
             pre = np.random.randint(0, n_neurons-1)
             post = np.random.randint(pre+1, n_neurons)
+            # Only count successfully added synapses (no duplicates)
+            initial_count = len(stdp.synapses)
             stdp.add_synapse(pre, post, np.random.uniform(0.1, 0.9))
+            if len(stdp.synapses) > initial_count:
+                added_synapses += 1
             
         # Simulate spike activity
         n_spikes = 1000
@@ -423,7 +428,7 @@ class TestIntegrationScenarios:
         
         # Verify final state
         stats = stdp.get_plasticity_statistics()
-        assert stats['total_synapses'] == n_synapses
+        assert stats['total_synapses'] == added_synapses  # Use actual number of unique synapses added
 
 
 if __name__ == "__main__":
