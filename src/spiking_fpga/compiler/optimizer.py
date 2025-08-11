@@ -47,14 +47,16 @@ class PassManager:
             return
         
         # Default pass configurations by level
-        if level.value >= 1:  # Basic
+        level_value = level.value if hasattr(level, 'value') else int(level)
+        
+        if level_value >= 1:  # Basic
             self.add_pass(SynapseProning(weight_threshold=0.01))
         
-        if level.value >= 2:  # Aggressive
+        if level_value >= 2:  # Aggressive
             self.add_pass(NeuronClustering(cluster_size=16))
             self.add_pass(SynapseProning(weight_threshold=0.005))  # More aggressive pruning
         
-        if level.value >= 3:  # Maximum
+        if level_value >= 3:  # Maximum
             self.add_pass(SpikeCompression(compression_ratio=0.7))
             self.add_pass(NeuronClustering(cluster_size=32))  # Larger clusters
         
@@ -123,7 +125,13 @@ class OptimizationPipeline:
         """Run complete optimization pipeline."""
         
         self.logger.info(f"Starting optimization pipeline for network: {network.name}")
-        self.logger.info(f"Optimization level: {optimization_level.name}")
+        optimization_level_name = (
+            optimization_level.name 
+            if hasattr(optimization_level, 'name') 
+            else str(optimization_level)
+        )
+        
+        self.logger.info(f"Optimization level: {optimization_level_name}")
         self.logger.info(f"Target platform: {target_platform}")
         
         # Initial resource estimation
@@ -145,7 +153,7 @@ class OptimizationPipeline:
         
         # Calculate optimization metrics
         optimization_stats = {
-            "optimization_level": optimization_level.name,
+            "optimization_level": optimization_level_name,
             "target_platform": target_platform,
             "initial_estimate": {
                 "neurons": initial_estimate.neurons,

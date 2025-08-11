@@ -79,10 +79,18 @@ class ScalableNetworkCompiler:
     def _generate_network_hash(self, network: Union[Network, Path]) -> str:
         """Generate a hash for network caching."""
         if isinstance(network, Path):
-            # Hash file content and modification time
-            content = network.read_text()
-            mtime = network.stat().st_mtime
-            data = f"{content}:{mtime}"
+            # Hash file content and modification time - handle missing files gracefully
+            try:
+                if network.exists():
+                    content = network.read_text()
+                    mtime = network.stat().st_mtime
+                    data = f"{content}:{mtime}"
+                else:
+                    # File doesn't exist - use path as fallback
+                    data = f"missing_file:{network}"
+            except (OSError, IOError) as e:
+                # Handle file read errors
+                data = f"error_reading_file:{network}:{str(e)}"
         else:
             # Hash network structure
             data = json.dumps({

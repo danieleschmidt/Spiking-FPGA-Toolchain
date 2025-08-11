@@ -178,11 +178,17 @@ class NetworkCompiler:
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Initialize compilation metrics
+        optimization_level_name = (
+            config.optimization_level.name 
+            if hasattr(config.optimization_level, 'name') 
+            else str(config.optimization_level)
+        )
+        
         compilation_metrics = CompilationMetrics(
             network_name="unknown",
             target=self.target.value,
             start_time=datetime.utcnow(),
-            optimization_level=config.optimization_level.name
+            optimization_level=optimization_level_name
         )
         
         try:

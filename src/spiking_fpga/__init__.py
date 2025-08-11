@@ -24,6 +24,13 @@ from spiking_fpga.research import (
     HomeostasticRegulator,
 )
 
+# Advanced performance optimization
+from spiking_fpga.performance_optimizer import (
+    create_optimized_compiler,
+    AdaptivePerformanceController,
+    SystemResourceMonitor,
+)
+
 __all__ = [
     "FPGATarget",
     "compile_network", 
@@ -36,6 +43,10 @@ __all__ = [
     "AdaptiveSpikeCoder",
     "MultiModalEncoder", 
     "MetaPlasticSTDP",
-    "BitstiftSTDP",
+    "BitstiftSTTP",
     "HomeostasticRegulator",
+    # Performance optimization
+    "create_optimized_compiler",
+    "AdaptivePerformanceController",
+    "SystemResourceMonitor",
 ]
