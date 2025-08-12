@@ -20,7 +20,24 @@ from enum import Enum
 import threading
 from collections import defaultdict, deque
 import statistics
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    # Fallback for when numpy is not available
+    class MockNumpy:
+        def random(self):
+            import random
+            class MockRandom:
+                def normal(self, mean, std):
+                    return random.gauss(mean, std)
+            return MockRandom()
+        
+        def percentile(self, values, p):
+            sorted_values = sorted(values)
+            index = int(len(sorted_values) * p / 100)
+            return sorted_values[min(index, len(sorted_values) - 1)]
+    
+    np = MockNumpy()
 from datetime import datetime, timedelta
 import uuid
 import socket
