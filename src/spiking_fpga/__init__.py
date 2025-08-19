@@ -13,6 +13,7 @@ __license__ = "Apache-2.0"
 from spiking_fpga.core import FPGATarget
 from spiking_fpga.compiler import HDLGenerator, VivadoBackend, QuartusBackend
 from spiking_fpga.models import Network
+from spiking_fpga.models.optimization import OptimizationLevel
 from spiking_fpga.network_compiler import NetworkCompiler, compile_network
 
 # Research modules for cutting-edge neuromorphic algorithms
@@ -36,6 +37,7 @@ __all__ = [
     "compile_network", 
     "NetworkCompiler",
     "Network",
+    "OptimizationLevel",
     "HDLGenerator",
     "VivadoBackend",
     "QuartusBackend",

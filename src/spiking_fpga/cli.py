@@ -465,13 +465,12 @@ def benchmark(target: str, size: str, duration: int):
         start_time = time.time()
         monitor.start_monitoring()
         
-        # Compile with adaptive optimization
+        # Compile with optimization
         from spiking_fpga.network_compiler import compile_network
         result = compile_network(
             network=network,
             target=fpga_target,
-            optimization_level=3,
-            adaptive_optimization=True
+            optimization_level=OptimizationLevel.AGGRESSIVE
         )
         
         compile_time = time.time() - start_time

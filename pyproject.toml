@@ -123,6 +123,9 @@ markers = [
     "vivado: marks tests requiring Xilinx Vivado",
     "quartus: marks tests requiring Intel Quartus",
     "performance: marks performance tests requiring benchmarks",
+    "benchmark: marks benchmark tests",
+    "integration: marks integration tests",
+    "unit: marks unit tests",
 ]
 
 [tool.coverage.run]
