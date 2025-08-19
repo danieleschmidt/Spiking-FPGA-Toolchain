@@ -12,6 +12,61 @@ from pathlib import Path
 from .logging import StructuredLogger
 
 
+class SystemResourceMonitor:
+    """Monitor system resources and provide performance recommendations."""
+    
+    def __init__(self):
+        self.logger = StructuredLogger(__name__)
+        self._monitoring = False
+        self._metrics_history: List[SystemMetrics] = []
+        
+    def start_monitoring(self):
+        """Start background monitoring."""
+        self._monitoring = True
+        self.logger.info("System resource monitoring started")
+        
+    def stop_monitoring(self):
+        """Stop background monitoring."""
+        self._monitoring = False
+        self.logger.info("System resource monitoring stopped")
+    
+    def get_current_metrics(self) -> Dict[str, Any]:
+        """Get current system metrics."""
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        return {
+            'cpu_percent': psutil.cpu_percent(interval=1),
+            'memory_percent': memory.percent,
+            'available_memory_gb': memory.available / (1024**3),
+            'disk_percent': (disk.used / disk.total) * 100,
+            'peak_memory_mb': memory.used / (1024**2),
+            'avg_cpu_percent': psutil.cpu_percent()
+        }
+    
+    def get_metrics(self) -> Dict[str, Any]:
+        """Get aggregated metrics."""
+        return self.get_current_metrics()
+    
+    def get_active_compilations(self) -> List[Dict[str, Any]]:
+        """Get list of active compilation processes."""
+        return []  # Placeholder implementation
+        
+    def get_performance_recommendations(self) -> List[str]:
+        """Get performance recommendations based on current system state."""
+        metrics = self.get_current_metrics()
+        recommendations = []
+        
+        if metrics['cpu_percent'] > 80:
+            recommendations.append("High CPU usage - consider reducing parallel processes")
+        if metrics['memory_percent'] > 90:
+            recommendations.append("High memory usage - consider reducing compilation cache size")
+        if metrics['disk_percent'] > 90:
+            recommendations.append("Low disk space - clean up temporary files")
+            
+        return recommendations
+
+
 @dataclass
 class SystemMetrics:
     """System resource usage metrics."""

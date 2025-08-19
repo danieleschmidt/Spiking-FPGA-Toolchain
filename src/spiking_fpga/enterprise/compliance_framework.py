@@ -27,6 +27,7 @@ from collections import defaultdict, deque
 import hmac
 import base64
 import secrets
+import numpy as np
 
 logger = logging.getLogger(__name__)
 

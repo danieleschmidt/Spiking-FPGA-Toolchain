@@ -33,6 +33,7 @@ class AdaptivePerformanceController:
     
     def __init__(self):
         self.logger = configure_logging("INFO")
+        from .utils.monitoring import SystemResourceMonitor
         self.system_monitor = SystemResourceMonitor()
         self.performance_history: List[Dict[str, Any]] = []
         self.current_profile = self._get_default_profile()
@@ -88,11 +89,11 @@ class AdaptivePerformanceController:
     def optimize_configuration(self, workload_type: str = "development") -> ScalableCompilationConfig:
         """Generate optimized configuration based on current conditions."""
         profile = self.profiles.get(workload_type, self.current_profile)
-        system_resources = self.system_monitor.get_current_resources()
+        system_resources = self.system_monitor.get_current_metrics()
         
         # Adjust concurrency based on available resources
         available_memory_gb = system_resources["available_memory_gb"]
-        cpu_usage_percent = system_resources["cpu_usage_percent"]
+        cpu_usage_percent = system_resources.get("cpu_percent", 0)
         
         # Dynamic concurrency adjustment
         optimal_workers = min(
@@ -138,7 +139,7 @@ class AdaptivePerformanceController:
         
         results = {
             "benchmark_start": datetime.utcnow().isoformat(),
-            "system_info": self.system_monitor.get_system_info(),
+            "system_info": self.system_monitor.get_current_metrics(),
             "test_results": [],
             "aggregate_metrics": {}
         }
@@ -150,7 +151,7 @@ class AdaptivePerformanceController:
             self.logger.info(f"Benchmarking network {i+1}/{len(test_networks)}")
             
             # Measure system resources before
-            pre_resources = self.system_monitor.get_current_resources()
+            pre_resources = self.system_monitor.get_current_metrics()
             
             start_time = time.perf_counter()
             
@@ -169,7 +170,7 @@ class AdaptivePerformanceController:
                     success_count += 1
                 
                 # Measure system resources after
-                post_resources = self.system_monitor.get_current_resources()
+                post_resources = self.system_monitor.get_current_metrics()
                 
                 test_result = {
                     "test_id": i,
@@ -211,6 +212,41 @@ class AdaptivePerformanceController:
                         **results["aggregate_metrics"])
         
         return results
+    
+    def analyze_performance(self, metrics: Dict[str, Any]) -> List[str]:
+        """Analyze performance metrics and provide optimization suggestions."""
+        suggestions = []
+        
+        cpu_percent = metrics.get('cpu_percent', 0)
+        memory_percent = metrics.get('memory_percent', 0)
+        available_memory = metrics.get('available_memory_gb', 0)
+        
+        if cpu_percent > 80:
+            suggestions.append("High CPU usage detected - consider reducing parallel compilation tasks")
+        
+        if memory_percent > 85:
+            suggestions.append("High memory usage - consider reducing compilation cache size")
+        
+        if available_memory < 1:
+            suggestions.append("Low available memory - close unnecessary applications")
+            
+        if cpu_percent < 20 and memory_percent < 50:
+            suggestions.append("System resources underutilized - consider increasing parallel compilation")
+        
+        return suggestions
+    
+    def learn_from_benchmark(self, config: Dict[str, Any], metrics: Dict[str, Any], result: Any):
+        """Learn from benchmark results to improve future optimizations."""
+        self.performance_history.append({
+            'timestamp': datetime.utcnow().isoformat(),
+            'config': config,
+            'metrics': metrics,
+            'success': getattr(result, 'success', False)
+        })
+        
+        # Keep only last 100 entries to prevent memory growth
+        if len(self.performance_history) > 100:
+            self.performance_history = self.performance_history[-100:]
     
     def monitor_real_time_performance(self, duration_minutes: int = 60) -> Dict[str, Any]:
         """Monitor system performance in real-time."""
