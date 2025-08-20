@@ -16,14 +16,29 @@ from spiking_fpga.models import Network
 from spiking_fpga.models.optimization import OptimizationLevel
 from spiking_fpga.network_compiler import NetworkCompiler, compile_network
 
-# Research modules for cutting-edge neuromorphic algorithms
-from spiking_fpga.research import (
-    AdaptiveSpikeCoder,
-    MultiModalEncoder,
-    MetaPlasticSTDP,
-    BitstiftSTDP,
-    HomeostasticRegulator,
-)
+# Research modules for cutting-edge neuromorphic algorithms (lazy import to avoid heavy dependencies)
+def _import_research_modules():
+    try:
+        from spiking_fpga.research import (
+            AdaptiveSpikeCoder,
+            MultiModalEncoder,
+            MetaPlasticSTDP,
+            BitstiftSTDP,
+            HomeostasticRegulator,
+        )
+        return {
+            'AdaptiveSpikeCoder': AdaptiveSpikeCoder,
+            'MultiModalEncoder': MultiModalEncoder,
+            'MetaPlasticSTDP': MetaPlasticSTDP,
+            'BitstiftSTDP': BitstiftSTDP,
+            'HomeostasticRegulator': HomeostasticRegulator,
+        }
+    except ImportError as e:
+        import warnings
+        warnings.warn(f"Research modules require additional dependencies: {e}")
+        return {}
+
+_research_modules = _import_research_modules()
 
 # Advanced performance optimization
 from spiking_fpga.performance_optimizer import (
@@ -41,14 +56,11 @@ __all__ = [
     "HDLGenerator",
     "VivadoBackend",
     "QuartusBackend",
-    # Research algorithms
-    "AdaptiveSpikeCoder",
-    "MultiModalEncoder", 
-    "MetaPlasticSTDP",
-    "BitstiftSTTP",
-    "HomeostasticRegulator",
     # Performance optimization
     "create_optimized_compiler",
     "AdaptivePerformanceController",
     "SystemResourceMonitor",
-]
+] + list(_research_modules.keys())
+
+# Add research modules to globals if available
+globals().update(_research_modules)
