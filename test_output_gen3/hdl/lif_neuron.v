@@ -1,5 +1,5 @@
-// LIF Neuron #0
-module lif_neuron_0 #(
+// LIF Neuron #10
+module lif_neuron_10 #(
     parameter V_THRESH = 256,
     parameter V_RESET = 0,
     parameter V_REST = 0, 

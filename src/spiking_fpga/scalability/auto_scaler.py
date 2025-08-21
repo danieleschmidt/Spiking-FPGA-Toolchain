@@ -39,6 +39,15 @@ class ScalingConfig:
     memory_threshold: float = 90.0  # Emergency scale down when memory > this
 
 
+@dataclass
+class ScalingPolicy:
+    """Simple scaling policy for compatibility."""
+    cpu_threshold: float = 80.0
+    memory_threshold: float = 85.0
+    scale_up_cooldown: int = 60
+    scale_down_cooldown: int = 300
+
+
 class AutoScaler:
     """Intelligent auto-scaling system with predictive capabilities."""
     
