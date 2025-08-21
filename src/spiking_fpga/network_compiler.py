@@ -167,7 +167,7 @@ class NetworkCompiler:
                         vendor=target.vendor,
                         monitoring_enabled=enable_monitoring)
     
-    def compile(self, network: Union[Network, str, Path], 
+    def compile(self, network: Union[Network, str, Path, Dict[str, Any]], 
                output_dir: Union[str, Path],
                config: CompilationConfig = None) -> CompilationResult:
         """Compile a spiking neural network to FPGA hardware."""
@@ -209,6 +209,12 @@ class NetworkCompiler:
                     
                     self.logger.info("Parsing network from file", file_path=str(network_path))
                     parsed_network = parse_network_file(network_path)
+                    compilation_metrics.network_name = parsed_network.name
+                elif isinstance(network, dict):
+                    # Parse dict directly using YAML parser
+                    self.logger.info("Parsing network from dictionary")
+                    parser = get_parser("yaml")
+                    parsed_network = parser.parse(network)
                     compilation_metrics.network_name = parsed_network.name
                 else:
                     parsed_network = network
@@ -420,7 +426,7 @@ class NetworkCompiler:
             self.health_monitor.stop_monitoring()
 
 
-def compile_network(network: Union[Network, str, Path],
+def compile_network(network: Union[Network, str, Path, Dict[str, Any]],
                    target: FPGATarget,
                    output_dir: Union[str, Path] = "./output",
                    optimization_level: OptimizationLevel = OptimizationLevel.BASIC,
@@ -431,7 +437,7 @@ def compile_network(network: Union[Network, str, Path],
     This is the main entry point for network compilation.
     
     Args:
-        network: Network object or path to network definition file
+        network: Network object, path to network definition file, or network dictionary
         target: Target FPGA platform
         output_dir: Directory for generated files
         optimization_level: Level of optimization to apply

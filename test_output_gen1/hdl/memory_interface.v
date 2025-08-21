@@ -1,6 +1,6 @@
 // Memory interface for synaptic weights
 module memory_interface #(
-    parameter NUM_SYNAPSES = 72895
+    parameter NUM_SYNAPSES = 207
 ) (
     input wire clk,
     input wire rst,

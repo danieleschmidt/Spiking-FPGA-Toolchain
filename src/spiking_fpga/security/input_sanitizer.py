@@ -48,15 +48,14 @@ class InputSanitizer:
         if len(input_str) > max_length:
             raise ValueError(f"Input too long (max {max_length} characters)")
         
-        # Pattern check
+        # Check for dangerous patterns
         for pattern in self.compiled_patterns:
             if pattern.search(input_str):
-                logger.warning(f"Dangerous pattern detected: {pattern.pattern}")
-                raise ValueError(f"Potentially dangerous input detected")
+                logger.warning(f"Potentially dangerous pattern detected: {pattern.pattern}")
+                raise ValueError(f"Input contains potentially dangerous content")
         
-        # Basic sanitization
-        sanitized = input_str.strip()
-        sanitized = re.sub(r'[^\w\s\-\.\,\(\)\[\]\{\}:;=]+', '', sanitized)
+        # Remove null bytes and other control characters
+        sanitized = input_str.replace('\x00', '').replace('\r', '').strip()
         
         return sanitized
     

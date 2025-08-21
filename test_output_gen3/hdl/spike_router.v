@@ -1,6 +1,6 @@
 // Spike routing network
 module spike_router #(
-    parameter NUM_NEURONS = 1094
+    parameter NUM_NEURONS = 35
 ) (
     input wire clk,
     input wire rst,

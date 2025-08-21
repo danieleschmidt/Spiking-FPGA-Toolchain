@@ -1,0 +1,1 @@
+=== FPGA Resource Utilization Report ===\n\nTotal Neurons: 1094\nTotal Synapses: 72832\nLUTs Required: 51418\nRegisters Required: 39384\nBRAM Usage: 284.50 KB\nDSP Slices: 1094\n
