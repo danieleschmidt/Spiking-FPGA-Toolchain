@@ -1,3 +1,0 @@
-#!/bin/bash
-# Python path configuration for Spiking-FPGA-Toolchain
-export PYTHONPATH="/root/repo/src:$PYTHONPATH"
